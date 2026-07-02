@@ -7,7 +7,7 @@ const User = require('./models/User');
 const Product = require('./models/Product');
 const Order = require('./models/Order');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ecommerce_db';
+const MONGO_URI = process.env.MONGO_URI;
 
 async function run() {
   await mongoose.connect(MONGO_URI);
@@ -23,10 +23,12 @@ async function run() {
     { $unwind: '$items' },
     { $lookup: { from: 'products', localField: 'items.product', foreignField: '_id', as: 'product' } },
     { $unwind: '$product' },
-    { $group: {
+    {
+      $group: {
         _id: '$product.category',
         totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.priceAtPurchase'] } }
-    }},
+      }
+    },
     { $sort: { totalRevenue: -1 } }
   ]);
   console.log('\n--- Query 2: Revenue by category ---');
